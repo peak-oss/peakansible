@@ -1,0 +1,22 @@
+---
+
+postgres_image: "docker.io/postgres:latest"
+
+db_pass: "dbSecretPass"
+db_name: "peakdb"
+
+root_dir: "/var/lib/peak"
+
+#folder on host for db data that will be mounted to db container
+db_volume: "{{root_dir}}/peakdb"
+
+#postgres recommends using a non default location when mounting a vol for data
+pgdata: "/var/lib/postgresql/data/peak"
+peak_db_host_port: '54321'
+
+# libselinux and policycoreutils are required for the ansible file context module
+# you are running selinux enabled 
+peak_depends:
+  - docker
+  - libselinux-python
+  - policycoreutils-python

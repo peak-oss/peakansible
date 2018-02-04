@@ -1,0 +1,42 @@
+---
+
+- name: create db
+  hosts: localhost
+  become: True
+  tasks:
+    - name: check depends for play
+      package:
+        name: "{{ item }}"
+        state: latest
+      with_items: "{{ peak_depends }}"
+    - name: ensure docker running
+      service:
+        name: docker
+        state: running
+    - name: ensure db_path exists
+      file:
+        name: "{{db_volume}}"
+        state: directory
+    - name: set secontext for db dir
+      sefcontext:
+        target: "{{db_volume}}"
+        setype: container_file_t
+        state: present
+    - name: pull postgres image
+      docker_image:
+        name: "{{postgres_image}}"
+    - name: start postgres
+      docker_container:
+        name: "{{db_name}}"
+        image: "{{postgres_image}}"
+        state: started
+        volumes:
+          - "{{db_volume}}:{{pgdata}}:rw"
+        env:
+          POSTGRES_USER: "{{ db_name}}"
+          POSTGRES_PASSWORD: "{{ db_pass }}"
+          PGDATA: "{{pgdata}}"
+        log_driver: journald
+        published_ports: 
+          - "{{peak_db_host_port}}:5432"
+
